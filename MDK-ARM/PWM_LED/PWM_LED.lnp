@@ -5,6 +5,7 @@
 "pwm_led\stm32f1xx_it.o"
 "pwm_led\stm32f1xx_hal_msp.o"
 "pwm_led\stm32f1xx_hal_timebase_tim.o"
+"pwm_led\ds3231.o"
 "pwm_led\stm32f1xx_hal_gpio_ex.o"
 "pwm_led\stm32f1xx_hal_tim.o"
 "pwm_led\stm32f1xx_hal_tim_ex.o"

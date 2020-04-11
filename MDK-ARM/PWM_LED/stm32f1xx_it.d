@@ -26,6 +26,8 @@ pwm_led\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_
 pwm_led\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 pwm_led\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 pwm_led\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
+pwm_led\stm32f1xx_it.o: ../Inc/DS3231.h
+pwm_led\stm32f1xx_it.o: ../Inc/main.h
 pwm_led\stm32f1xx_it.o: ../Inc/stm32f1xx_it.h
 pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
 pwm_led\stm32f1xx_it.o: ../Inc/FreeRTOSConfig.h

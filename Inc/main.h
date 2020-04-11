@@ -29,7 +29,8 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
-
+#include "DS3231.h"
+	
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -57,7 +58,16 @@ void Error_Handler(void);
 
 /* USER CODE END EFP */
 
+
 /* Private defines -----------------------------------------------------------*/
+#define RTC_SDA_Pin GPIO_PIN_12
+#define RTC_SDA_GPIO_Port GPIOB
+#define RTC_SCL_Pin GPIO_PIN_13
+#define RTC_SCL_GPIO_Port GPIOB
+#define RTC_SQW_Pin GPIO_PIN_14
+#define RTC_SQW_GPIO_Port GPIOB
+#define RTC_32K_Pin GPIO_PIN_15
+#define RTC_32K_GPIO_Port GPIOB
 #define LED_Pin GPIO_PIN_8
 #define LED_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */

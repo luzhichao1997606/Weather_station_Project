@@ -49,12 +49,13 @@ uint8_t Count_Flash_Times = 0;
 osThreadId Task_MainHandle;
 osThreadId LED_PWM_TaskHandle;
 osThreadId LED_Flash_TaskHandle;
+osThreadId RTC_GetTimeHandle;
 /* USER CODE BEGIN PV */
 double brightNess ;
 QueueHandle_t Test_Queue = NULL;
 struct xLIST List_Test ;        //创建链表的根节点
 
-struct xLIST_ITEM List_Item1;   //创建链表的节
+struct xLIST_ITEM List_Item1;   //创建链表的节点
 struct xLIST_ITEM List_Item2;   //创建链表的节 
 struct xLIST_ITEM List_Item3;   //创建链表的节 
 
@@ -69,6 +70,7 @@ static void MX_GPIO_Init(void);
 void Task_Main_Start(void const * argument);
 void LED_PWM_Task_Start(void const * argument);
 void LED_Flash_Task_Start(void const * argument);
+void RTC_GetTime_Start(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -112,7 +114,7 @@ int main(void)
   //链表根节点初始化
   vListInitialise( &List_Test );    
 	
-	//链表初始化 
+	//链表初始 
   vListInitialiseItem( & List_Item1 );
   List_Item1.xItemValue = 1;
 	
@@ -158,6 +160,10 @@ int main(void)
   /* definition and creation of LED_Flash_Task */
   osThreadDef(LED_Flash_Task, LED_Flash_Task_Start, osPriorityIdle, 0, 128);
   LED_Flash_TaskHandle = osThreadCreate(osThread(LED_Flash_Task), NULL);
+
+  /* definition and creation of RTC_GetTime */
+  osThreadDef(RTC_GetTime, RTC_GetTime_Start, osPriorityNormal, 0, 128);
+  RTC_GetTimeHandle = osThreadCreate(osThread(RTC_GetTime), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -227,10 +233,27 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : RTC_SDA_Pin */
+  GPIO_InitStruct.Pin = RTC_SDA_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(RTC_SDA_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : RTC_SCL_Pin RTC_SQW_Pin RTC_32K_Pin */
+  GPIO_InitStruct.Pin = RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;
@@ -261,6 +284,7 @@ __weak void Task_Main_Start(void const * argument)
     for (uint8_t i = 0; i < 100; i++)
     {
       osDelay(20);
+
       brightNess = sin(i * (3.14159265 / 100) );
     } 
     osDelay(1);
@@ -333,6 +357,37 @@ __weak void LED_Flash_Task_Start(void const * argument)
 		}
   }
   /* USER CODE END LED_Flash_Task_Start */
+}
+
+/* USER CODE BEGIN Header_RTC_GetTime_Start */
+/**
+* @brief Function implementing the RTC_GetTime thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_RTC_GetTime_Start */
+
+uint8_t hour,sec,min ;
+
+__weak void RTC_GetTime_Start(void const * argument)
+{
+  
+  /* USER CODE BEGIN RTC_GetTime_Start */
+  /* Infinite loop */
+  for(;;)
+  { 
+  
+    Read_RTC();
+
+    hour = DS3231_ReadDate.Hour;
+    min = DS3231_ReadDate.Minutes;
+    sec =DS3231_ReadDate.Seconds;
+
+		if(min == 3)
+		{vTaskSuspend(RTC_GetTimeHandle);}
+    osDelay(1);
+  }
+  /* USER CODE END RTC_GetTime_Start */
 }
 
 /**

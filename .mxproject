@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=D:/stm32_project/PWM_LED/Inc
+HeaderPath=C:/Users/Â½ÖÇ³¬/Desktop/Project/Project1-Weather_station_Project/Inc
 HeaderFiles=FreeRTOSConfig.h;stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;
-SourcePath=D:/stm32_project/PWM_LED/Src
+SourcePath=C:/Users/Â½ÖÇ³¬/Desktop/Project/Project1-Weather_station_Project/Src
 SourceFiles=freertos.c;stm32f1xx_it.c;stm32f1xx_hal_msp.c;stm32f1xx_hal_timebase_tim.c;main.c;
 
 [PreviousLibFiles]
