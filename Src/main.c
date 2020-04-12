@@ -111,6 +111,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
+  ModifyTime(0x11,0x11,0x11,0x11,0x11,0x11); 
   //链表根节点初始化
   vListInitialise( &List_Test );    
 	
@@ -373,18 +374,14 @@ __weak void RTC_GetTime_Start(void const * argument)
 {
   
   /* USER CODE BEGIN RTC_GetTime_Start */
-  /* Infinite loop */
+  /* Infinite loop */ 
   for(;;)
   { 
-  
-    Read_RTC();
-
+    
     hour = DS3231_ReadDate.Hour;
     min = DS3231_ReadDate.Minutes;
-    sec =DS3231_ReadDate.Seconds;
-
-		if(min == 3)
-		{vTaskSuspend(RTC_GetTimeHandle);}
+    sec =DS3231_ReadDate.Seconds;  
+    Read_RTC();
     osDelay(1);
   }
   /* USER CODE END RTC_GetTime_Start */

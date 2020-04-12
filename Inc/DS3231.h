@@ -52,11 +52,10 @@ extern  DS3231_DateTime DS3231_ReadDate;// structure for read date
 #define DS3231_TEMPERATUREH 0x11    //温度寄存器高字节(8位)
 #define DS3231_TEMPERATUREL 0x12    //温度寄存器低字节(高2位) 
  
-
+void 	ModifyTime(uint8_t yea,uint8_t mon,uint8_t day,uint8_t hou,uint8_t min,uint8_t sec);
 uint8_t DS3231_ReadByte(uint8_t ReadAddr);
 uint8_t BCD2_Hex(uint8_t val);
 void 	Read_RTC(void);
-void ModifyTime(uint8_t yea,uint8_t mon,uint8_t da,uint8_t hou,uint8_t min,uint8_t sec);
 #endif
 
 

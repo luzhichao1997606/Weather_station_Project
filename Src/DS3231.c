@@ -203,25 +203,25 @@ void RTC_IIC_Nack(void)
 返回值  ：1，接收应答失败
           0，接收应答成功
 ********************************************/ 
+uint8_t Pin_State;
 uint8_t RTC_IIC_Wait_Ack(void)
 {
-        uint8_t ucErrTime=0;
-        IIC_READ_SDA();     
-        IIC_SDA('H');
-        IIC_SCL('H');
-        HAL_Delay(2);         
-        while(IIC_READ_SDA())
+        uint8_t ucAck=0 ; 
+        IIC_READ_SDA();  
+        IIC_SCL('H');   
+        Pin_State = IIC_READ_SDA();
+        if (Pin_State)
         {   
-            ucErrTime++;
-            if(ucErrTime>250)
-            {
-                RTC_IIC_Stop();
-                return 1;
-            }
+            ucAck = 1; 
         }
+        else
+        {
+            ucAck = 0;
+        }
+        
         IIC_SCL('L');//时钟输出0            
-        return 0;  
-} 
+        return ucAck;  
+}
 
 /*******************************************
 函数名称：RTC_IIC_Send_Byte
@@ -270,8 +270,7 @@ void RTC_IIC_Send_Byte(uint8_t data)
 uint8_t RTC_IIC_Read_Byte(uint8_t ack)
 {
     uint8_t i,Receive = 0;
-    uint8_t temp = 0x80;    
-
+ 
     IIC_READ_SDA();
 
     for(i = 0;i < 8; i++ )
@@ -323,14 +322,17 @@ uint8_t RTC_IIC_Read_Byte(uint8_t ack)
 void DS3231_WriteByte(uint8_t WriteAddr,uint8_t DataToWrite)
 {
     RTC_IIC_Start();
-    RTC_IIC_Send_Byte(0XD1);       //发送器件地址    
+
+    RTC_IIC_Send_Byte(0xD0);       //发送器件地址    
     RTC_IIC_Wait_Ack();
+
     RTC_IIC_Send_Byte(WriteAddr);  //发送首地址
     RTC_IIC_Wait_Ack();
+
     RTC_IIC_Send_Byte(DataToWrite);//发送数据
     RTC_IIC_Wait_Ack();
-    RTC_IIC_Stop();
-    HAL_Delay(10);
+
+    RTC_IIC_Stop(); 
 }
 /*******************************************
 函数名称：DS3231_ReadByte
@@ -370,7 +372,7 @@ uint8_t DS3231_ReadByte(uint8_t ReadAddr)
 ********************************************/
 void Read_RTC()
 {    
-		unsigned char rtc_address[6]={0x00,0x01,0x02,0x04,0x05,0x06};
+	unsigned char rtc_address[6]={0x00,0x01,0x02,0x04,0x05,0x06};
     unsigned char R_tmpdate[6];
     unsigned char i,*p;
     p = rtc_address;             //地址传递
@@ -384,6 +386,8 @@ void Read_RTC()
    DS3231_ReadDate.Minutes  = R_tmpdate[1] ;
    DS3231_ReadDate.Hour     = R_tmpdate[2] ;
    DS3231_ReadDate.Day      = R_tmpdate[3] ;
+   DS3231_ReadDate.Month    = R_tmpdate[4] ;
+   DS3231_ReadDate.Year     = R_tmpdate[5] ; 
  
 }
 /*******************************************
@@ -392,19 +396,25 @@ void Read_RTC()
 参    数：R_tmpdate
 返回值  ：无
 ********************************************/
-void ModifyTime(uint8_t yea,uint8_t mon,uint8_t da,uint8_t hou,uint8_t min,uint8_t sec)
+void ModifyTime(uint8_t yea,uint8_t mon,uint8_t day,uint8_t hou,uint8_t min,uint8_t sec)
 {
-  uint8_t temp=0;
+    uint8_t temp=0;
 
-  DS3231_WriteByte(0x06,temp);//修改年
-
-  DS3231_WriteByte(0x05,temp);//修改月
-
-  DS3231_WriteByte(0x04,temp);//修改日
-
-  DS3231_WriteByte(0x02,temp);//修改时
-
-  DS3231_WriteByte(0x01,temp);//修改分
-
-  DS3231_WriteByte(0x00,temp);//修改秒
+    temp=HEX2_Bcd(yea);
+    DS3231_WriteByte(DS3231_YEAR,temp);         //修改年
+                
+    temp=HEX2_Bcd(mon);
+    DS3231_WriteByte(DS3231_MONTH,temp);        //修改月
+                
+    temp=HEX2_Bcd(day);
+    DS3231_WriteByte(DS3231_DAY,temp);          //修改日
+                
+    temp=HEX2_Bcd(hou);
+    DS3231_WriteByte(DS3231_HOUR,temp);          //修改时
+                
+    temp=HEX2_Bcd(min);
+    DS3231_WriteByte(DS3231_MINUTE,temp);        //修改分        
+                
+    temp=HEX2_Bcd(sec);
+    DS3231_WriteByte(DS3231_SECOND,temp);        //修改秒 
 }
