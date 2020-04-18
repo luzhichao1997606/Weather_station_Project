@@ -28,7 +28,8 @@ pwm_led\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 pwm_led\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 pwm_led\stm32f1xx_it.o: ../Inc/DS3231.h
 pwm_led\stm32f1xx_it.o: ../Inc/main.h
-pwm_led\stm32f1xx_it.o: ../Inc/stm32f1xx_it.h
+pwm_led\stm32f1xx_it.o: ../Inc/APDS9960.h
+pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h
 pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
 pwm_led\stm32f1xx_it.o: ../Inc/FreeRTOSConfig.h
 pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
@@ -38,3 +39,8 @@ pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS
 pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
 pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
 pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
+pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h
+pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
+pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
+pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
+pwm_led\stm32f1xx_it.o: ../Inc/stm32f1xx_it.h

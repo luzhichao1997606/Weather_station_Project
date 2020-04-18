@@ -28,6 +28,7 @@ pwm_led\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 pwm_led\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 pwm_led\main.o: ../Inc/DS3231.h
 pwm_led\main.o: ../Inc/main.h
+pwm_led\main.o: ../Inc/APDS9960.h
 pwm_led\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h
 pwm_led\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
 pwm_led\main.o: ../Inc/FreeRTOSConfig.h
@@ -42,5 +43,6 @@ pwm_led\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h
 pwm_led\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
 pwm_led\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
 pwm_led\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
+pwm_led\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h
 pwm_led\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 pwm_led\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
