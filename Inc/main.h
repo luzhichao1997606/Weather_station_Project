@@ -29,11 +29,11 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
-#include "DS3231.h"
-	
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "DS3231.h"
+#include "APDS9960.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -58,7 +58,6 @@ void Error_Handler(void);
 
 /* USER CODE END EFP */
 
-
 /* Private defines -----------------------------------------------------------*/
 #define RTC_SDA_Pin GPIO_PIN_12
 #define RTC_SDA_GPIO_Port GPIOB
@@ -70,6 +69,13 @@ void Error_Handler(void);
 #define RTC_32K_GPIO_Port GPIOB
 #define LED_Pin GPIO_PIN_8
 #define LED_GPIO_Port GPIOA
+#define APDS_SCL_Pin GPIO_PIN_11
+#define APDS_SCL_GPIO_Port GPIOA
+#define APDS_SDA_Pin GPIO_PIN_12
+#define APDS_SDA_GPIO_Port GPIOA
+#define APDS_INT_Pin GPIO_PIN_15
+#define APDS_INT_GPIO_Port GPIOA
+#define APDS_INT_EXTI_IRQn EXTI15_10_IRQn
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

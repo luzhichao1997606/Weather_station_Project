@@ -50,12 +50,13 @@ osThreadId Task_MainHandle;
 osThreadId LED_PWM_TaskHandle;
 osThreadId LED_Flash_TaskHandle;
 osThreadId RTC_GetTimeHandle;
+osThreadId APDS_TriggerHandle;
 /* USER CODE BEGIN PV */
 double brightNess ;
 QueueHandle_t Test_Queue = NULL;
 struct xLIST List_Test ;        //创建链表的根节点
 
-struct xLIST_ITEM List_Item1;   //创建链表的节点
+struct xLIST_ITEM List_Item1;   //创建链表的节�????
 struct xLIST_ITEM List_Item2;   //创建链表的节 
 struct xLIST_ITEM List_Item3;   //创建链表的节 
 
@@ -71,6 +72,7 @@ void Task_Main_Start(void const * argument);
 void LED_PWM_Task_Start(void const * argument);
 void LED_Flash_Task_Start(void const * argument);
 void RTC_GetTime_Start(void const * argument);
+void APDS_GetData_Start(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -166,6 +168,10 @@ int main(void)
   osThreadDef(RTC_GetTime, RTC_GetTime_Start, osPriorityNormal, 0, 128);
   RTC_GetTimeHandle = osThreadCreate(osThread(RTC_GetTime), NULL);
 
+  /* definition and creation of APDS_Trigger */
+  osThreadDef(APDS_Trigger, APDS_GetData_Start, osPriorityNormal, 0, 128);
+  APDS_TriggerHandle = osThreadCreate(osThread(APDS_Trigger), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -241,7 +247,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LED_Pin|APDS_SCL_Pin|APDS_SDA_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : RTC_SDA_Pin */
   GPIO_InitStruct.Pin = RTC_SDA_Pin;
@@ -252,21 +258,40 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : RTC_SCL_Pin RTC_SQW_Pin RTC_32K_Pin */
   GPIO_InitStruct.Pin = RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : LED_Pin */
-  GPIO_InitStruct.Pin = LED_Pin;
+  /*Configure GPIO pins : LED_Pin APDS_SCL_Pin APDS_SDA_Pin */
+  GPIO_InitStruct.Pin = LED_Pin|APDS_SCL_Pin|APDS_SDA_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : APDS_INT_Pin */
+  GPIO_InitStruct.Pin = APDS_INT_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(APDS_INT_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
 /* USER CODE BEGIN 4 */
-
+uint8_t GPIO_State ;
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  /* Prevent unused argument(s) compilation warning */
+   
+  /* NOTE: This function Should not be modified, when the callback is needed,
+           the HAL_GPIO_EXTI_Callback could be implemented in the user file
+   */
+	 GPIO_State = 1;
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_Task_Main_Start */
@@ -278,6 +303,7 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_Task_Main_Start */
 __weak void Task_Main_Start(void const * argument)
 { 
+
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)
@@ -367,24 +393,91 @@ __weak void LED_Flash_Task_Start(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_RTC_GetTime_Start */
-
-uint8_t hour,sec,min ;
-
 __weak void RTC_GetTime_Start(void const * argument)
 {
-  
   /* USER CODE BEGIN RTC_GetTime_Start */
+  // uint8_t hour,sec,min ;
   /* Infinite loop */ 
   for(;;)
   { 
     
-    hour = DS3231_ReadDate.Hour;
-    min = DS3231_ReadDate.Minutes;
-    sec =DS3231_ReadDate.Seconds;  
-    Read_RTC();
+    //hour  =  DS3231_ReadDate.Hour   ;
+    //min   =  DS3231_ReadDate.Minutes;
+    //sec   =  DS3231_ReadDate.Seconds;
+    //Read_RTC();
+    vTaskSuspend(LED_PWM_TaskHandle);
+    vTaskSuspend(LED_Flash_TaskHandle);
+    vTaskSuspend(RTC_GetTimeHandle);
     osDelay(1);
   }
   /* USER CODE END RTC_GetTime_Start */
+}
+
+/* USER CODE BEGIN Header_APDS_GetData_Start */
+/**
+* @brief Function implementing the APDS_Trigger thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_APDS_GetData_Start */
+uint8_t ID,Dir,State;
+__weak void APDS_GetData_Start(void const * argument)
+{
+  /* USER CODE BEGIN APDS_GetData_Start */
+  /* Infinite loop */
+ 
+  for(;;)
+  {
+		ID = APDS9960_Get_ID() ;
+    if(ID == 0xab)
+    {
+      //IIC通讯正常 
+      if (APDS9960_Init())
+      {
+        //初始�?
+        APDS9960_Gesture_EN(1);
+      } 
+      if (APDS9960_Check_Gesture_State())//手势数据是否有效
+        {
+          State = APDS9960_Gesture_Get_State();
+        }
+      else
+        { 
+            decodeGesture();
+					
+            if (gesture_motion > 0)
+            {
+                switch (gesture_motion)
+                {
+                    case DIR_UP:
+                        Dir = 0;
+                        break;
+                    case DIR_DOWN:
+                        Dir = 1;
+                        break;
+                    case DIR_LEFT:
+                        Dir = 2;
+                        break;
+                    case DIR_RIGHT:
+                        Dir = 3;
+                        break;
+                    case DIR_NEAR:
+                        Dir = 4;
+                        break;
+                    case DIR_FAR:
+                        Dir = 5;
+                        break;
+                    default:
+                        Dir = State;
+                        break;
+                }
+            }
+            resetGestureParameters(); 
+        }
+    }
+      osDelay(1);
+  }
+  /* USER CODE END APDS_GetData_Start */
 }
 
 /**

@@ -44,3 +44,4 @@ pwm_led\ds3231.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
 pwm_led\ds3231.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
 pwm_led\ds3231.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
 pwm_led\ds3231.o: ../Inc/main.h
+pwm_led\ds3231.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
