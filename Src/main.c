@@ -51,18 +51,22 @@ osThreadId LED_PWM_TaskHandle;
 osThreadId LED_Flash_TaskHandle;
 osThreadId RTC_GetTimeHandle;
 osThreadId APDS_TriggerHandle;
+osThreadId DHT11_GetDataHandle;
 /* USER CODE BEGIN PV */
 double brightNess ;
 QueueHandle_t Test_Queue = NULL;
+
+SemaphoreHandle_t BinarySemaphore_Handle = NULL;
 struct xLIST List_Test ;        //创建链表的根节点
 
-struct xLIST_ITEM List_Item1;   //创建链表的节�????
+struct xLIST_ITEM List_Item1;   //创建链表的节 
 struct xLIST_ITEM List_Item2;   //创建链表的节 
 struct xLIST_ITEM List_Item3;   //创建链表的节 
 
 #define QUEUE_Len 		4 
 #define QUEUE_Size		4 
 
+uint8_t ID;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -73,6 +77,7 @@ void LED_PWM_Task_Start(void const * argument);
 void LED_Flash_Task_Start(void const * argument);
 void RTC_GetTime_Start(void const * argument);
 void APDS_GetData_Start(void const * argument);
+void DHT11_DetData_Start(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -117,7 +122,7 @@ int main(void)
   //链表根节点初始化
   vListInitialise( &List_Test );    
 	
-	//链表初始 
+	//链表初�?? 
   vListInitialiseItem( & List_Item1 );
   List_Item1.xItemValue = 1;
 	
@@ -133,6 +138,15 @@ int main(void)
 	
 	Test_Queue = xQueueCreate((UBaseType_t)QUEUE_Len,
 														(UBaseType_t)QUEUE_Size);
+
+  ID = APDS9960_Get_ID() ;
+    if(ID == 0xab)
+    { 
+      if (APDS9960_Init())
+      { 
+        APDS9960_Gesture_EN(1);
+      } 
+    }
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -140,8 +154,10 @@ int main(void)
   /* USER CODE END RTOS_MUTEX */
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
+  /* add semaphores, ... */ 
+  BinarySemaphore_Handle = xSemaphoreCreateBinary();
   /* USER CODE END RTOS_SEMAPHORES */
+
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
@@ -171,6 +187,10 @@ int main(void)
   /* definition and creation of APDS_Trigger */
   osThreadDef(APDS_Trigger, APDS_GetData_Start, osPriorityNormal, 0, 128);
   APDS_TriggerHandle = osThreadCreate(osThread(APDS_Trigger), NULL);
+
+  /* definition and creation of DHT11_GetData */
+  osThreadDef(DHT11_GetData, DHT11_DetData_Start, osPriorityNormal, 0, 128);
+  DHT11_GetDataHandle = osThreadCreate(osThread(DHT11_GetData), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -244,23 +264,23 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, DHT11_SDA_Pin|RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, LED_Pin|APDS_SCL_Pin|APDS_SDA_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : DHT11_SDA_Pin RTC_SCL_Pin RTC_SQW_Pin RTC_32K_Pin */
+  GPIO_InitStruct.Pin = DHT11_SDA_Pin|RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : RTC_SDA_Pin */
   GPIO_InitStruct.Pin = RTC_SDA_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(RTC_SDA_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : RTC_SCL_Pin RTC_SQW_Pin RTC_32K_Pin */
-  GPIO_InitStruct.Pin = RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED_Pin APDS_SCL_Pin APDS_SDA_Pin */
   GPIO_InitStruct.Pin = LED_Pin|APDS_SCL_Pin|APDS_SDA_Pin;
@@ -282,14 +302,28 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-uint8_t GPIO_State ;
+uint8_t GPIO_State ,State;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
+{ 
+	static BaseType_t xHigherPriorityTaskWoken;
   /* Prevent unused argument(s) compilation warning */
    
   /* NOTE: This function Should not be modified, when the callback is needed,
            the HAL_GPIO_EXTI_Callback could be implemented in the user file
    */
+	BaseType_t xReturn = pdPASS ;
+  if (APDS9960_Check_Gesture_State()) 
+   {  
+		  xSemaphoreGiveFromISR( BinarySemaphore_Handle, &xHigherPriorityTaskWoken );
+   } 
+	if( xHigherPriorityTaskWoken != pdFALSE )
+    {
+        // We can force a context switch here.  Context switching from an
+        // ISR uses port specific syntax.  Check the demo task for your port
+        // to find the syntax required.
+			 /* 如果 xHigherPriorityTaskWoken 表达式为真，需要执行一次上下文切换*/
+			portYIELD_FROM_ISR( xHigherPriorityTaskWoken ); 
+    }
 	 GPIO_State = 1;
 }
 /* USER CODE END 4 */
@@ -303,6 +337,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 /* USER CODE END Header_Task_Main_Start */
 __weak void Task_Main_Start(void const * argument)
 { 
+    
 
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
@@ -406,8 +441,9 @@ __weak void RTC_GetTime_Start(void const * argument)
     //sec   =  DS3231_ReadDate.Seconds;
     //Read_RTC();
     vTaskSuspend(LED_PWM_TaskHandle);
-    vTaskSuspend(LED_Flash_TaskHandle);
-    vTaskSuspend(RTC_GetTimeHandle);
+    //vTaskSuspend(LED_Flash_TaskHandle);
+    vTaskSuspend(DHT11_GetDataHandle); 
+    vTaskSuspend(RTC_GetTimeHandle);  
     osDelay(1);
   }
   /* USER CODE END RTC_GetTime_Start */
@@ -420,31 +456,31 @@ __weak void RTC_GetTime_Start(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_APDS_GetData_Start */
-uint8_t ID,Dir,State;
+  uint8_t ID,Dir,State,PIN_Set,Count_APDS_Run  ;
 __weak void APDS_GetData_Start(void const * argument)
 {
   /* USER CODE BEGIN APDS_GetData_Start */
   /* Infinite loop */
- 
+    
   for(;;)
-  {
-		ID = APDS9960_Get_ID() ;
-    if(ID == 0xab)
+  { 
+    Count_APDS_Run ++;
+    if (Count_APDS_Run == 200)
     {
-      //IIC通讯正常 
-      if (APDS9960_Init())
-      {
-        //初始�?
-        APDS9960_Gesture_EN(1);
-      } 
-      if (APDS9960_Check_Gesture_State())//手势数据是否有效
-        {
-          State = APDS9960_Gesture_Get_State();
-        }
-      else
+      Count_APDS_Run = 0;
+    } 
+		//获取二值信号量的值
+		State = xSemaphoreTake(BinarySemaphore_Handle , 10);
+		PIN_Set = HAL_GPIO_ReadPin(APDS_INT_GPIO_Port,APDS_INT_Pin); 
+    if(ID == 0xab && State)
+    {        
+			APDS9960_Gesture_Get_State();//采用二值信号量获取 
+			
+      if( !PIN_Set )
         { 
             decodeGesture();
-					
+            GPIO_State = 0;
+            PIN_Set = 1;
             if (gesture_motion > 0)
             {
                 switch (gesture_motion)
@@ -475,9 +511,48 @@ __weak void APDS_GetData_Start(void const * argument)
             resetGestureParameters(); 
         }
     }
+		else if(!State)
+    {
+      //如果中断没有检测到 
+				
+    } 
+    else 
+    {
+      //如果没有检测到ID则挂起自己
+      //vTaskSuspend(APDS_TriggerHandle);
+    } 
       osDelay(1);
   }
   /* USER CODE END APDS_GetData_Start */
+}
+
+/* USER CODE BEGIN Header_DHT11_DetData_Start */
+/**
+* @brief Function implementing the DHT11_GetData thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_DHT11_DetData_Start */
+
+__weak void DHT11_DetData_Start(void const * argument)
+{
+	uint8_t DHT11_State;
+  uint8_t * DHT11_Temp;
+  uint8_t * DHT11_Humi ;
+  /* USER CODE BEGIN DHT11_DetData_Start */
+  /* Infinite loop */
+  for(;;)
+  {
+    DHT11_State = DHT11_Init();
+    //如果DHT11没有检测到则自挂东南枝
+    if (DHT11_State)
+    {
+      vTaskSuspend(DHT11_GetDataHandle); 
+    }
+    
+    osDelay(1);
+  }
+  /* USER CODE END DHT11_DetData_Start */
 }
 
 /**

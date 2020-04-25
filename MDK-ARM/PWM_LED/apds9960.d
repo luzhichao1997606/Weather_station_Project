@@ -41,7 +41,9 @@ pwm_led\apds9960.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 pwm_led\apds9960.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 pwm_led\apds9960.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 pwm_led\apds9960.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
-pwm_led\apds9960.o: ../Inc/DS3231.h
+pwm_led\apds9960.o: ../Inc/DHT11.h
 pwm_led\apds9960.o: ../Inc/main.h
+pwm_led\apds9960.o: ../Inc/Sys.h
+pwm_led\apds9960.o: ../Inc/DS3231.h
 pwm_led\apds9960.o: ../Inc/APDS9960.h
 pwm_led\apds9960.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h

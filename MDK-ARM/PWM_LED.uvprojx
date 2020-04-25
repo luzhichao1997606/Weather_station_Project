@@ -426,6 +426,11 @@
               <FileType>1</FileType>
               <FilePath>..\Src\APDS9960.c</FilePath>
             </File>
+            <File>
+              <FileName>DHT11.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\DHT11.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

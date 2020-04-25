@@ -676,7 +676,7 @@ uint8_t APDS9960_Get_ID(void);
 BaseType_t APDS9960_SetMode(int8_t mode, uint8_t enable);
 
 //初始化APDS9960
-BaseType_t APDS9960_Init();
+BaseType_t APDS9960_Init(void);
 
 // 启用手势模式
 void APDS9960_Gesture_EN(uint8_t interrupts);

@@ -35,8 +35,10 @@ pwm_led\freertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 pwm_led\freertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 pwm_led\freertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 pwm_led\freertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
-pwm_led\freertos.o: ../Inc/DS3231.h
+pwm_led\freertos.o: ../Inc/DHT11.h
 pwm_led\freertos.o: ../Inc/main.h
+pwm_led\freertos.o: ../Inc/Sys.h
+pwm_led\freertos.o: ../Inc/DS3231.h
 pwm_led\freertos.o: ../Inc/APDS9960.h
 pwm_led\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h
 pwm_led\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h

@@ -32,6 +32,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "DHT11.h"
 #include "DS3231.h"
 #include "APDS9960.h"
 /* USER CODE END Includes */
@@ -59,6 +60,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define DHT11_SDA_Pin GPIO_PIN_11
+#define DHT11_SDA_GPIO_Port GPIOB
 #define RTC_SDA_Pin GPIO_PIN_12
 #define RTC_SDA_GPIO_Port GPIOB
 #define RTC_SCL_Pin GPIO_PIN_13
