@@ -431,6 +431,11 @@
               <FileType>1</FileType>
               <FilePath>..\Src\DHT11.c</FilePath>
             </File>
+            <File>
+              <FileName>MPU6050.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\MPU6050.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

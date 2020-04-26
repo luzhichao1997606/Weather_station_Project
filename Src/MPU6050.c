@@ -1,0 +1,9 @@
+#include "MPU6050.h"
+#include "main.h"  
+
+//MPU6050_SCL : PB4
+//MPU6050_SDA : PB5
+//MPU6050_XDA : PB6
+//MPU6050_XCL : PB7
+//MPU6050_ADO : PB8
+//MPU6050_INT : PB9
