@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=C:/Users/Allen_heng/Desktop/工程/Project1/Weather_station_Project/Inc
+HeaderPath=C:/Users/陆智超/Desktop/Project/Project1-Weather_station_Project/Inc
 HeaderFiles=FreeRTOSConfig.h;stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;
-SourcePath=C:/Users/Allen_heng/Desktop/工程/Project1/Weather_station_Project/Src
+SourcePath=C:/Users/陆智超/Desktop/Project/Project1-Weather_station_Project/Src
 SourceFiles=freertos.c;stm32f1xx_it.c;stm32f1xx_hal_msp.c;stm32f1xx_hal_timebase_tim.c;main.c;
 
 [PreviousLibFiles]

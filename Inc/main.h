@@ -35,10 +35,14 @@ extern "C" {
 #include "DHT11.h"
 #include "DS3231.h"
 #include "APDS9960.h"
+#include "MPU6050.h" 
+#include "inv_mpu.h"
+#include "inv_mpu_dmp_motion_driver.h" 
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+
 
 /* USER CODE END ET */
 
@@ -79,6 +83,14 @@ void Error_Handler(void);
 #define APDS_INT_Pin GPIO_PIN_15
 #define APDS_INT_GPIO_Port GPIOA
 #define APDS_INT_EXTI_IRQn EXTI15_10_IRQn
+#define MPU6050_SCL_Pin GPIO_PIN_4
+#define MPU6050_SCL_GPIO_Port GPIOB
+#define MPU6050_SDA_Pin GPIO_PIN_5
+#define MPU6050_SDA_GPIO_Port GPIOB
+#define MPU6050_ADO_Pin GPIO_PIN_8
+#define MPU6050_ADO_GPIO_Port GPIOB
+#define MPU6050_INT_Pin GPIO_PIN_9
+#define MPU6050_INT_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

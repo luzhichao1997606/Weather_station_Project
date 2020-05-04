@@ -2,11 +2,11 @@
 <Project>
     <FileVersion>2.0</FileVersion> 
 
-    <ProjectPath>C:\Users\Allen_heng\Desktop\¹¤³Ì\Project1\Weather_station_Project\</ProjectPath> 
+    <ProjectPath>C:\Users\Â½ÖÇ³¬\Desktop\Project\Project1-Weather_station_Project\</ProjectPath> 
 
     <ProjectName>PWM_LED</ProjectName>     <ProjectNature>C</ProjectNature> 
 
-    <HAL_Driver>C:\Users\Allen_heng\STM32Cube\Repository\STM32Cube_FW_F1_V1.8.0\</HAL_Driver>
+    <HAL_Driver>D:\Stm32PACK\STM32Cube_FW_F1_V1.8.0\</HAL_Driver>
     <CMSIS>..\Drivers\CMSIS</CMSIS> 
     <Toolchain>MDK-ARM</Toolchain>
     <Toolversion>5</Toolversion>
@@ -22,7 +22,7 @@
         <memory name="RAM" access="xrw" start="0x20000000" size="20" />
         <memory name="FLASH" access="rx" start="0x8000000" size="64" />
         </memories>
-    <startup>C:\Users\Allen_heng\STM32Cube\Repository\STM32Cube_FW_F1_V1.8.0\..\Drivers\CMSIS\Device\ST\STM32F1xx\Source\Templates\gcc\startup_stm32f103xb.s</startup>      
+    <startup>D:\Stm32PACK\STM32Cube_FW_F1_V1.8.0\..\Drivers\CMSIS\Device\ST\STM32F1xx\Source\Templates\gcc\startup_stm32f103xb.s</startup>      
 
     <heapSize>0x200</heapSize>
     <stackSize>0x400</stackSize>

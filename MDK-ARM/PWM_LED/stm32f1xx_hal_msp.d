@@ -46,3 +46,6 @@ pwm_led\stm32f1xx_hal_msp.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/
 pwm_led\stm32f1xx_hal_msp.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
 pwm_led\stm32f1xx_hal_msp.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
 pwm_led\stm32f1xx_hal_msp.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+pwm_led\stm32f1xx_hal_msp.o: ../Inc/MPU6050.h
+pwm_led\stm32f1xx_hal_msp.o: ..\Drivers\eMPL\inv_mpu.h
+pwm_led\stm32f1xx_hal_msp.o: ..\Drivers\eMPL\inv_mpu_dmp_motion_driver.h

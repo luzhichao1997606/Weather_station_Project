@@ -52,6 +52,7 @@ osThreadId LED_Flash_TaskHandle;
 osThreadId RTC_GetTimeHandle;
 osThreadId APDS_TriggerHandle;
 osThreadId DHT11_GetDataHandle;
+osThreadId MPU6050_GetHandle;
 /* USER CODE BEGIN PV */
 double brightNess ;
 QueueHandle_t Test_Queue = NULL;
@@ -66,7 +67,13 @@ struct xLIST_ITEM List_Item3;   //创建链表的节
 #define QUEUE_Len 		4 
 #define QUEUE_Size		4 
 
-uint8_t ID;
+uint8_t ID,MPU_State;
+
+float pitch,roll,yaw;     //欧拉角
+short aacx,aacy,aacz;     //加速度传感器原始数据
+short gyrox,gyroy,gyroz;	//陀螺仪原始数据
+short temp;               //温度	
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,6 +85,7 @@ void LED_Flash_Task_Start(void const * argument);
 void RTC_GetTime_Start(void const * argument);
 void APDS_GetData_Start(void const * argument);
 void DHT11_DetData_Start(void const * argument);
+void MPU6050_GetData_Start(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -146,7 +154,17 @@ int main(void)
       { 
         APDS9960_Gesture_EN(1);
       } 
-    }
+    } 				
+    //初始化MPU6050
+  while (MPU_Init()){ ; }
+  
+  temp = MPU_Get_Temperature();
+  //等待初始化DMP单元
+  //while(mpu_dmp_init())
+ 	//{ 
+	//	;
+	//}  
+
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -157,7 +175,6 @@ int main(void)
   /* add semaphores, ... */ 
   BinarySemaphore_Handle = xSemaphoreCreateBinary();
   /* USER CODE END RTOS_SEMAPHORES */
-
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
@@ -191,6 +208,10 @@ int main(void)
   /* definition and creation of DHT11_GetData */
   osThreadDef(DHT11_GetData, DHT11_DetData_Start, osPriorityNormal, 0, 128);
   DHT11_GetDataHandle = osThreadCreate(osThread(DHT11_GetData), NULL);
+
+  /* definition and creation of MPU6050_Get */
+  osThreadDef(MPU6050_Get, MPU6050_GetData_Start, osPriorityNormal, 0, 128);
+  MPU6050_GetHandle = osThreadCreate(osThread(MPU6050_Get), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -264,23 +285,26 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, DHT11_SDA_Pin|RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, DHT11_SDA_Pin|RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin 
+                          |MPU6050_SCL_Pin|MPU6050_SDA_Pin|MPU6050_ADO_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, LED_Pin|APDS_SCL_Pin|APDS_SDA_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : DHT11_SDA_Pin RTC_SCL_Pin RTC_SQW_Pin RTC_32K_Pin */
-  GPIO_InitStruct.Pin = DHT11_SDA_Pin|RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin;
+  /*Configure GPIO pins : DHT11_SDA_Pin RTC_SCL_Pin RTC_SQW_Pin RTC_32K_Pin 
+                           MPU6050_SCL_Pin MPU6050_SDA_Pin MPU6050_ADO_Pin */
+  GPIO_InitStruct.Pin = DHT11_SDA_Pin|RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin 
+                          |MPU6050_SCL_Pin|MPU6050_SDA_Pin|MPU6050_ADO_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : RTC_SDA_Pin */
-  GPIO_InitStruct.Pin = RTC_SDA_Pin;
+  /*Configure GPIO pins : RTC_SDA_Pin MPU6050_INT_Pin */
+  GPIO_InitStruct.Pin = RTC_SDA_Pin|MPU6050_INT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(RTC_SDA_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED_Pin APDS_SCL_Pin APDS_SDA_Pin */
   GPIO_InitStruct.Pin = LED_Pin|APDS_SCL_Pin|APDS_SDA_Pin;
@@ -321,7 +345,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
         // We can force a context switch here.  Context switching from an
         // ISR uses port specific syntax.  Check the demo task for your port
         // to find the syntax required.
-			 /* 如果 xHigherPriorityTaskWoken 表达式为真，需要执行一次上下文切换*/
+			 /* 如果 xHigherPriorityTaskWoken 表达式为真，�?要执行一次上下文切换*/
 			portYIELD_FROM_ISR( xHigherPriorityTaskWoken ); 
     }
 	 GPIO_State = 1;
@@ -337,8 +361,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 /* USER CODE END Header_Task_Main_Start */
 __weak void Task_Main_Start(void const * argument)
 { 
-    
-
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)
@@ -456,12 +478,12 @@ __weak void RTC_GetTime_Start(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_APDS_GetData_Start */
-  uint8_t ID,Dir,State,PIN_Set,Count_APDS_Run  ;
 __weak void APDS_GetData_Start(void const * argument)
 {
   /* USER CODE BEGIN APDS_GetData_Start */
   /* Infinite loop */
-    
+  
+  uint8_t ID,Dir,State,PIN_Set,Count_APDS_Run  ;  
   for(;;)
   { 
     Count_APDS_Run ++;
@@ -474,7 +496,7 @@ __weak void APDS_GetData_Start(void const * argument)
 		PIN_Set = HAL_GPIO_ReadPin(APDS_INT_GPIO_Port,APDS_INT_Pin); 
     if(ID == 0xab && State)
     {        
-			APDS9960_Gesture_Get_State();//采用二值信号量获取 
+			APDS9960_Gesture_Get_State();//采用二值信号量的值
 			
       if( !PIN_Set )
         { 
@@ -513,12 +535,12 @@ __weak void APDS_GetData_Start(void const * argument)
     }
 		else if(!State)
     {
-      //如果中断没有检测到 
+      //如果中断没有�?测到 
 				
     } 
     else 
     {
-      //如果没有检测到ID则挂起自己
+      //如果没有�?测到ID则挂起 
       //vTaskSuspend(APDS_TriggerHandle);
     } 
       osDelay(1);
@@ -533,18 +555,15 @@ __weak void APDS_GetData_Start(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_DHT11_DetData_Start */
-
+uint8_t DHT11_State;
 __weak void DHT11_DetData_Start(void const * argument)
 {
-	uint8_t DHT11_State;
-  uint8_t * DHT11_Temp;
-  uint8_t * DHT11_Humi ;
   /* USER CODE BEGIN DHT11_DetData_Start */
   /* Infinite loop */
   for(;;)
   {
     DHT11_State = DHT11_Init();
-    //如果DHT11没有检测到则自挂东南枝
+    //如果DHT11没有 测到则自挂东南枝
     if (DHT11_State)
     {
       vTaskSuspend(DHT11_GetDataHandle); 
@@ -553,6 +572,29 @@ __weak void DHT11_DetData_Start(void const * argument)
     osDelay(1);
   }
   /* USER CODE END DHT11_DetData_Start */
+}
+
+/* USER CODE BEGIN Header_MPU6050_GetData_Start */
+/**
+* @brief Function implementing the MPU6050_Get thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_MPU6050_GetData_Start */
+__weak void MPU6050_GetData_Start(void const * argument)
+{
+  /* USER CODE BEGIN MPU6050_GetData_Start */
+  /* Infinite loop */
+  for(;;)
+  {
+    
+			temp = MPU_Get_Temperature();	//得到温度值
+			MPU_Get_Accelerometer(&aacx,&aacy,&aacz);	//得到加速度传感器数据
+			MPU_Get_Gyroscope(&gyrox,&gyroy,&gyroz);	//得到陀螺仪数据 
+    
+    osDelay(1);
+  }
+  /* USER CODE END MPU6050_GetData_Start */
 }
 
 /**

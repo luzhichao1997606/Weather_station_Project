@@ -46,3 +46,6 @@ pwm_led\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
 pwm_led\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
 pwm_led\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
 pwm_led\freertos.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+pwm_led\freertos.o: ../Inc/MPU6050.h
+pwm_led\freertos.o: ..\Drivers\eMPL\inv_mpu.h
+pwm_led\freertos.o: ..\Drivers\eMPL\inv_mpu_dmp_motion_driver.h

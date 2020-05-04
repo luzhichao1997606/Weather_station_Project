@@ -9,6 +9,8 @@
 "pwm_led\apds9960.o"
 "pwm_led\dht11.o"
 "pwm_led\mpu6050.o"
+"pwm_led\inv_mpu.o"
+"pwm_led\inv_mpu_dmp_motion_driver.o"
 "pwm_led\stm32f1xx_hal_gpio_ex.o"
 "pwm_led\stm32f1xx_hal_tim.o"
 "pwm_led\stm32f1xx_hal_tim_ex.o"

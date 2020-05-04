@@ -46,4 +46,7 @@ pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue
 pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
 pwm_led\stm32f1xx_it.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
 pwm_led\stm32f1xx_it.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+pwm_led\stm32f1xx_it.o: ../Inc/MPU6050.h
+pwm_led\stm32f1xx_it.o: ..\Drivers\eMPL\inv_mpu.h
+pwm_led\stm32f1xx_it.o: ..\Drivers\eMPL\inv_mpu_dmp_motion_driver.h
 pwm_led\stm32f1xx_it.o: ../Inc/stm32f1xx_it.h
