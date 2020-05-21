@@ -53,6 +53,7 @@ osThreadId RTC_GetTimeHandle;
 osThreadId APDS_TriggerHandle;
 osThreadId DHT11_GetDataHandle;
 osThreadId MPU6050_GetHandle;
+osThreadId TFT_DisplayHandle;
 /* USER CODE BEGIN PV */
 double brightNess ;
 QueueHandle_t Test_Queue = NULL;
@@ -67,11 +68,11 @@ struct xLIST_ITEM List_Item3;   //创建链表的节
 #define QUEUE_Len 		4 
 #define QUEUE_Size		4 
 
-uint8_t ID,MPU_State;
+uint8_t ID,MPU_State,DHT11_State ;
 
-float pitch,roll,yaw;     //欧拉角
-short aacx,aacy,aacz;     //加速度传感器原始数据
-short gyrox,gyroy,gyroz;	//陀螺仪原始数据
+float pitch,roll,yaw;     //欧拉�?
+short aacx,aacy,aacz;     //加�?�度传感器原始数�? 
+short gyrox,gyroy,gyroz;	//�?螺仪原始数据
 short temp;               //温度	
 
 /* USER CODE END PV */
@@ -86,6 +87,7 @@ void RTC_GetTime_Start(void const * argument);
 void APDS_GetData_Start(void const * argument);
 void DHT11_DetData_Start(void const * argument);
 void MPU6050_GetData_Start(void const * argument);
+void TFT_DisplayAndShow(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -150,13 +152,13 @@ int main(void)
   ID = APDS9960_Get_ID() ;
     if(ID == 0xab)
     { 
-      if (APDS9960_Init())
-      { 
-        APDS9960_Gesture_EN(1);
-      } 
+//      if (APDS9960_Init())
+//      { 
+//        APDS9960_Gesture_EN(1);
+//      } 
     } 				
     //初始化MPU6050
-  while (MPU_Init()){ ; }
+//  while (MPU_Init()){ ; }
   
   temp = MPU_Get_Temperature();
   //等待初始化DMP单元
@@ -212,6 +214,10 @@ int main(void)
   /* definition and creation of MPU6050_Get */
   osThreadDef(MPU6050_Get, MPU6050_GetData_Start, osPriorityNormal, 0, 128);
   MPU6050_GetHandle = osThreadCreate(osThread(MPU6050_Get), NULL);
+
+  /* definition and creation of TFT_Display */
+  osThreadDef(TFT_Display, TFT_DisplayAndShow, osPriorityIdle, 0, 1024);
+  TFT_DisplayHandle = osThreadCreate(osThread(TFT_Display), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -280,38 +286,76 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(TFT_T_DO_GPIO_Port, TFT_T_DO_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, TFT_T_CS_Pin|TFT_T_CLK_Pin|TFT_DC_Pin|TFT_RESET_Pin 
+                          |TFT_CS_Pin|TFT_SCK_Pin|TFT_SDO_Pin|LED_Pin 
+                          |APDS_SCL_Pin|APDS_SDA_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(TFT_LED_GPIO_Port, TFT_LED_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, DHT11_SDA_Pin|RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin 
                           |MPU6050_SCL_Pin|MPU6050_SDA_Pin|MPU6050_ADO_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LED_Pin|APDS_SCL_Pin|APDS_SDA_Pin, GPIO_PIN_RESET);
+  /*Configure GPIO pins : TFT_T_IRQ_Pin TFT_T_DIN_Pin */
+  GPIO_InitStruct.Pin = TFT_T_IRQ_Pin|TFT_T_DIN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : DHT11_SDA_Pin RTC_SCL_Pin RTC_SQW_Pin RTC_32K_Pin 
-                           MPU6050_SCL_Pin MPU6050_SDA_Pin MPU6050_ADO_Pin */
-  GPIO_InitStruct.Pin = DHT11_SDA_Pin|RTC_SCL_Pin|RTC_SQW_Pin|RTC_32K_Pin 
-                          |MPU6050_SCL_Pin|MPU6050_SDA_Pin|MPU6050_ADO_Pin;
+  /*Configure GPIO pin : TFT_T_DO_Pin */
+  GPIO_InitStruct.Pin = TFT_T_DO_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(TFT_T_DO_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : RTC_SDA_Pin MPU6050_INT_Pin */
-  GPIO_InitStruct.Pin = RTC_SDA_Pin|MPU6050_INT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : LED_Pin APDS_SCL_Pin APDS_SDA_Pin */
-  GPIO_InitStruct.Pin = LED_Pin|APDS_SCL_Pin|APDS_SDA_Pin;
+  /*Configure GPIO pins : TFT_T_CS_Pin TFT_T_CLK_Pin TFT_DC_Pin TFT_RESET_Pin 
+                           TFT_CS_Pin TFT_SCK_Pin TFT_SDO_Pin LED_Pin 
+                           APDS_SCL_Pin APDS_SDA_Pin */
+  GPIO_InitStruct.Pin = TFT_T_CS_Pin|TFT_T_CLK_Pin|TFT_DC_Pin|TFT_RESET_Pin 
+                          |TFT_CS_Pin|TFT_SCK_Pin|TFT_SDO_Pin|LED_Pin 
+                          |APDS_SCL_Pin|APDS_SDA_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : TFT_SDI_Pin */
+  GPIO_InitStruct.Pin = TFT_SDI_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(TFT_SDI_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : TFT_LED_Pin DHT11_SDA_Pin RTC_SCL_Pin RTC_SQW_Pin 
+                           RTC_32K_Pin MPU6050_SCL_Pin MPU6050_SDA_Pin MPU6050_ADO_Pin */
+  GPIO_InitStruct.Pin = TFT_LED_Pin|DHT11_SDA_Pin|RTC_SCL_Pin|RTC_SQW_Pin 
+                          |RTC_32K_Pin|MPU6050_SCL_Pin|MPU6050_SDA_Pin|MPU6050_ADO_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : EC11_B_Pin RTC_SDA_Pin MPU6050_INT_Pin */
+  GPIO_InitStruct.Pin = EC11_B_Pin|RTC_SDA_Pin|MPU6050_INT_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : EC11_A_Pin EC11_KEY_Pin */
+  GPIO_InitStruct.Pin = EC11_A_Pin|EC11_KEY_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : APDS_INT_Pin */
   GPIO_InitStruct.Pin = APDS_INT_Pin;
@@ -320,13 +364,20 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(APDS_INT_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
 /* USER CODE BEGIN 4 */
-uint8_t GPIO_State ,State;
+static  char    EC11_A_Last = 0;                        //EC11的A引脚上一次的状�??
+static  char    EC11_B_Last = 0;                        //EC11的B引脚上一次的状�??
+uint8_t         EC11_A_Now  = 0;                        //EC11的A引脚这一次的状�??
+uint8_t         EC11_B_Now  = 0;                        //EC11的B引脚这一次的状�??
+uint8_t GPIO_State ,State,Temp_Data,i;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 { 
 	static BaseType_t xHigherPriorityTaskWoken;
@@ -336,20 +387,40 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
            the HAL_GPIO_EXTI_Callback could be implemented in the user file
    */
 	BaseType_t xReturn = pdPASS ;
+  //APDS9960中断
+  if(GPIO_Pin == APDS_INT_Pin)
+  {
   if (APDS9960_Check_Gesture_State()) 
    {  
 		  xSemaphoreGiveFromISR( BinarySemaphore_Handle, &xHigherPriorityTaskWoken );
    } 
-	if( xHigherPriorityTaskWoken != pdFALSE )
-    {
-        // We can force a context switch here.  Context switching from an
-        // ISR uses port specific syntax.  Check the demo task for your port
-        // to find the syntax required.
-			 /* 如果 xHigherPriorityTaskWoken 表达式为真，�?要执行一次上下文切换*/
-			portYIELD_FROM_ISR( xHigherPriorityTaskWoken ); 
-    }
-	 GPIO_State = 1;
+  } 
+  //EC11中断
+  if (GPIO_Pin ==  EC11_A_Pin)
+  { 
+    EC11_A_Now = HAL_GPIO_ReadPin(EC11_A_GPIO_Port,EC11_A_Pin); 
+     
+    if(EC11_A_Now == 0)
+      { 
+        for(int i=0;i<750;i++); //延时消抖
+        EC11_B_Now = HAL_GPIO_ReadPin(EC11_B_GPIO_Port,EC11_B_Pin); 
+        if(EC11_B_Now ==1)      //只需要采集A的上升沿或下降沿的任意一个状态，              
+          Temp_Data += 1;       //正转
+
+        else                    //反转
+          Temp_Data -= 1;
+      }
+      EC11_A_Last = EC11_A_Now;    
+      EC11_B_Last = EC11_B_Now;    
+    __HAL_GPIO_EXTI_CLEAR_IT(EC11_A_Pin); 
+  }
+
+  /* 如果 xHigherPriorityTaskWoken 表达式为 true ,要执行一次上下文切换*/
+  	portYIELD_FROM_ISR( xHigherPriorityTaskWoken );  
+	  
 }
+
+
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_Task_Main_Start */
@@ -491,12 +562,12 @@ __weak void APDS_GetData_Start(void const * argument)
     {
       Count_APDS_Run = 0;
     } 
-		//获取二值信号量的值
+		//获取二值信号量
 		State = xSemaphoreTake(BinarySemaphore_Handle , 10);
 		PIN_Set = HAL_GPIO_ReadPin(APDS_INT_GPIO_Port,APDS_INT_Pin); 
     if(ID == 0xab && State)
     {        
-			APDS9960_Gesture_Get_State();//采用二值信号量的值
+			APDS9960_Gesture_Get_State();//采用二值信号量
 			
       if( !PIN_Set )
         { 
@@ -535,12 +606,12 @@ __weak void APDS_GetData_Start(void const * argument)
     }
 		else if(!State)
     {
-      //如果中断没有�?测到 
+      //如果中断没有测到 
 				
     } 
     else 
     {
-      //如果没有�?测到ID则挂起 
+       
       //vTaskSuspend(APDS_TriggerHandle);
     } 
       osDelay(1);
@@ -555,7 +626,6 @@ __weak void APDS_GetData_Start(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_DHT11_DetData_Start */
-uint8_t DHT11_State;
 __weak void DHT11_DetData_Start(void const * argument)
 {
   /* USER CODE BEGIN DHT11_DetData_Start */
@@ -588,13 +658,31 @@ __weak void MPU6050_GetData_Start(void const * argument)
   for(;;)
   {
     
-			temp = MPU_Get_Temperature();	//得到温度值
+			temp = MPU_Get_Temperature();	//得到温度 
 			MPU_Get_Accelerometer(&aacx,&aacy,&aacz);	//得到加速度传感器数据
 			MPU_Get_Gyroscope(&gyrox,&gyroy,&gyroz);	//得到陀螺仪数据 
     
     osDelay(1);
   }
   /* USER CODE END MPU6050_GetData_Start */
+}
+
+/* USER CODE BEGIN Header_TFT_DisplayAndShow */
+/**
+* @brief Function implementing the TFT_Display thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_TFT_DisplayAndShow */
+__weak void TFT_DisplayAndShow(void const * argument)
+{
+  /* USER CODE BEGIN TFT_DisplayAndShow */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END TFT_DisplayAndShow */
 }
 
 /**

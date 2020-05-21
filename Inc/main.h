@@ -64,6 +64,35 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define TFT_T_IRQ_Pin GPIO_PIN_13
+#define TFT_T_IRQ_GPIO_Port GPIOC
+#define TFT_T_DO_Pin GPIO_PIN_14
+#define TFT_T_DO_GPIO_Port GPIOC
+#define TFT_T_DIN_Pin GPIO_PIN_15
+#define TFT_T_DIN_GPIO_Port GPIOC
+#define TFT_T_CS_Pin GPIO_PIN_0
+#define TFT_T_CS_GPIO_Port GPIOA
+#define TFT_T_CLK_Pin GPIO_PIN_1
+#define TFT_T_CLK_GPIO_Port GPIOA
+#define TFT_DC_Pin GPIO_PIN_2
+#define TFT_DC_GPIO_Port GPIOA
+#define TFT_RESET_Pin GPIO_PIN_3
+#define TFT_RESET_GPIO_Port GPIOA
+#define TFT_CS_Pin GPIO_PIN_4
+#define TFT_CS_GPIO_Port GPIOA
+#define TFT_SCK_Pin GPIO_PIN_5
+#define TFT_SCK_GPIO_Port GPIOA
+#define TFT_SDO_Pin GPIO_PIN_6
+#define TFT_SDO_GPIO_Port GPIOA
+#define TFT_SDI_Pin GPIO_PIN_7
+#define TFT_SDI_GPIO_Port GPIOA
+#define TFT_LED_Pin GPIO_PIN_0
+#define TFT_LED_GPIO_Port GPIOB
+#define EC11_B_Pin GPIO_PIN_1
+#define EC11_B_GPIO_Port GPIOB
+#define EC11_A_Pin GPIO_PIN_10
+#define EC11_A_GPIO_Port GPIOB
+#define EC11_A_EXTI_IRQn EXTI15_10_IRQn
 #define DHT11_SDA_Pin GPIO_PIN_11
 #define DHT11_SDA_GPIO_Port GPIOB
 #define RTC_SDA_Pin GPIO_PIN_12
@@ -83,6 +112,9 @@ void Error_Handler(void);
 #define APDS_INT_Pin GPIO_PIN_15
 #define APDS_INT_GPIO_Port GPIOA
 #define APDS_INT_EXTI_IRQn EXTI15_10_IRQn
+#define EC11_KEY_Pin GPIO_PIN_3
+#define EC11_KEY_GPIO_Port GPIOB
+#define EC11_KEY_EXTI_IRQn EXTI3_IRQn
 #define MPU6050_SCL_Pin GPIO_PIN_4
 #define MPU6050_SCL_GPIO_Port GPIOB
 #define MPU6050_SDA_Pin GPIO_PIN_5
